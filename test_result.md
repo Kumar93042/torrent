@@ -122,15 +122,18 @@ backend:
 
   - task: "Real-time progress monitoring with WebSocket"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented WebSocket endpoint for real-time updates and background monitoring task"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - WebSocket connection established successfully at /api/ws. Real-time torrent updates working, background monitoring task sending periodic updates with torrent statistics, progress, and status changes. Connection handling and message broadcasting functional."
 
   - task: "Torrent control operations (pause/resume/delete)"
     implemented: true
