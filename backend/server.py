@@ -210,15 +210,20 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         websocket_connections.remove(websocket)
 
-# Helper function to add torrent
+# Helper function to add torrent with better configuration
 def add_torrent_to_session(torrent_data: bytes, torrent_id: str, params: dict):
     try:
         info = lt.torrent_info(torrent_data)
         
-        # Set download parameters
+        # Set download parameters with better configuration
         add_torrent_params = {
             'ti': info,
-            'save_path': str(DOWNLOAD_DIR)
+            'save_path': str(DOWNLOAD_DIR),
+            'flags': (
+                lt.torrent_flags.duplicate_is_error | 
+                lt.torrent_flags.auto_managed |
+                lt.torrent_flags.apply_ip_filter
+            )
         }
         
         handle = ses.add_torrent(add_torrent_params)
@@ -229,11 +234,15 @@ def add_torrent_to_session(torrent_data: bytes, torrent_id: str, params: dict):
         if params.get('upload_speed_limit'):
             handle.set_upload_limit(params['upload_speed_limit'])
         
+        # Force reannounce to find more peers
+        handle.force_reannounce()
+        
         # Pause if scheduled for later
         if params.get('scheduled_start') and params['scheduled_start'] > datetime.utcnow():
             handle.pause()
         
         torrent_handles[torrent_id] = handle
+        logger.info(f"Successfully added torrent: {info.name()}")
         return True
         
     except Exception as e:
