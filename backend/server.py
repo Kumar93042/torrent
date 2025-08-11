@@ -33,9 +33,34 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Global torrent session
+# Global torrent session with better configuration
 ses = lt.session()
+
+# Configure session settings for better downloading
+settings = ses.get_settings()
+settings['enable_dht'] = True
+settings['enable_lsd'] = True  # Local Service Discovery
+settings['enable_upnp'] = True
+settings['enable_natpmp'] = True
+settings['announce_to_all_tiers'] = True
+settings['announce_to_all_trackers'] = True
+settings['auto_manage_startup'] = True
+settings['auto_manage_interval'] = 30
+settings['max_connections'] = 200
+settings['max_uploads'] = 10
+settings['download_rate_limit'] = 0  # Unlimited by default
+settings['upload_rate_limit'] = 0    # Unlimited by default
+
+# Apply settings
+ses.apply_settings(settings)
+
+# Listen on ports
 ses.listen_on(6881, 6891)
+
+# Add DHT routers for better peer discovery
+ses.add_dht_router('router.bittorrent.com', 6881)
+ses.add_dht_router('dht.transmissionbt.com', 6881)
+ses.add_dht_router('router.utorrent.com', 6881)
 
 # Global state for managing torrents
 torrent_handles: Dict[str, Any] = {}
