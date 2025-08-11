@@ -68,6 +68,10 @@ download_stats: Dict[str, Dict] = {}
 websocket_connections: List[WebSocket] = []
 executor = ThreadPoolExecutor(max_workers=4)
 
+# Download directory and torrent files directory
+DOWNLOAD_DIR = Path("d")
+DOWNLOAD_DIR.mkdir(exist_ok=True)
+
 # Create directory for storing torrent files
 TORRENTS_DIR = Path("torrents")
 TORRENTS_DIR.mkdir(exist_ok=True)
