@@ -109,12 +109,14 @@ class SystemStats(BaseModel):
     global_download_rate: float
     global_upload_rate: float
 
-# Background task for monitoring torrents
+# Background task for monitoring torrents with better state handling
 async def monitor_torrents():
     while True:
         try:
             for torrent_id, handle in list(torrent_handles.items()):
                 if not handle.is_valid():
+                    logger.warning(f"Invalid handle for torrent {torrent_id}, removing")
+                    del torrent_handles[torrent_id]
                     continue
                     
                 status = handle.status()
@@ -128,10 +130,15 @@ async def monitor_torrents():
                     'total_download': status.total_download,
                     'total_upload': status.total_upload,
                     'num_peers': status.num_peers,
-                    'num_seeds': status.num_seeds
+                    'num_seeds': status.num_seeds,
+                    'error': status.error if status.error else None
                 }
                 
                 download_stats[torrent_id] = stats
+                
+                # Log errors if any
+                if status.error:
+                    logger.error(f"Torrent {torrent_id} error: {status.error}")
                 
                 # Calculate ETA
                 if stats['download_rate'] > 0:
@@ -141,15 +148,22 @@ async def monitor_torrents():
                 else:
                     stats['eta'] = "Unknown"
                 
-                # Update database
+                # Determine status more accurately
                 torrent_status = "downloading"
                 if status.is_seeding:
                     torrent_status = "completed"
-                elif status.state == lt.torrent_status.paused:
+                elif status.paused:
                     torrent_status = "paused"
                 elif status.state == lt.torrent_status.checking_files:
                     torrent_status = "checking"
+                elif status.state == lt.torrent_status.downloading_metadata:
+                    torrent_status = "downloading_metadata"
+                elif status.state == lt.torrent_status.queued_for_checking:
+                    torrent_status = "queued"
+                elif status.error:
+                    torrent_status = "error"
                 
+                # Update database with more detailed info
                 await db.torrents.update_one(
                     {"id": torrent_id},
                     {"$set": {
@@ -157,7 +171,10 @@ async def monitor_torrents():
                         "download_rate": stats['download_rate'],
                         "upload_rate": stats['upload_rate'],
                         "status": torrent_status,
-                        "eta": stats['eta']
+                        "eta": stats['eta'],
+                        "num_peers": stats['num_peers'],
+                        "num_seeds": stats['num_seeds'],
+                        "error": stats['error']
                     }}
                 )
                 
@@ -170,6 +187,14 @@ async def monitor_torrents():
                             "completed_at": datetime.utcnow()
                         }}
                     )
+                    logger.info(f"Torrent {torrent_id} completed successfully")
+                
+                # Log progress for debugging
+                if stats['progress'] > 0:
+                    logger.info(f"Torrent {torrent_id}: {stats['progress']:.1f}% - "
+                              f"D: {stats['download_rate']/1024:.1f} KB/s - "
+                              f"Peers: {stats['num_peers']} - "
+                              f"Seeds: {stats['num_seeds']}")
             
             # Send updates to websocket clients
             if websocket_connections:
