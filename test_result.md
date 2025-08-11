@@ -107,15 +107,18 @@ user_problem_statement: "Comprehensive web-based torrent management application 
 backend:
   - task: "Torrent file upload endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented torrent file upload with libtorrent integration, needs testing"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Torrent upload endpoint working correctly. Successfully uploaded test torrent file with multipart form data, libtorrent integration functional, speed limits applied correctly. Endpoint handles .torrent file validation and creates proper torrent entries in database."
 
   - task: "Real-time progress monitoring with WebSocket"
     implemented: true
