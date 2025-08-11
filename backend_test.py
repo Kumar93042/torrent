@@ -47,10 +47,47 @@ class TorrentBackendTester:
             
     def create_test_torrent_file(self) -> bytes:
         """Create a minimal valid torrent file for testing"""
-        # This is a minimal torrent file structure for testing
-        # In a real scenario, you'd use a proper torrent creation library
-        torrent_data = b'd8:announce9:test:test4:infod4:name9:test.file12:piece lengthi32768e6:pieces0:ee'
-        return torrent_data
+        # Create a proper minimal torrent file using bencode format
+        import hashlib
+        
+        # Create a simple test file content
+        test_content = b"This is a test file for torrent testing."
+        piece_length = 32768
+        
+        # Calculate piece hash
+        piece_hash = hashlib.sha1(test_content).digest()
+        
+        # Create torrent dictionary
+        torrent_dict = {
+            b'announce': b'http://tracker.example.com:8080/announce',
+            b'info': {
+                b'name': b'test-file.txt',
+                b'length': len(test_content),
+                b'piece length': piece_length,
+                b'pieces': piece_hash
+            }
+        }
+        
+        # Simple bencode implementation for our test
+        def bencode(obj):
+            if isinstance(obj, int):
+                return f"i{obj}e".encode()
+            elif isinstance(obj, bytes):
+                return f"{len(obj)}:".encode() + obj
+            elif isinstance(obj, dict):
+                result = b"d"
+                for key in sorted(obj.keys()):
+                    result += bencode(key) + bencode(obj[key])
+                result += b"e"
+                return result
+            elif isinstance(obj, list):
+                result = b"l"
+                for item in obj:
+                    result += bencode(item)
+                result += b"e"
+                return result
+        
+        return bencode(torrent_dict)
         
     async def test_torrent_upload(self) -> bool:
         """Test torrent file upload endpoint"""
