@@ -137,15 +137,18 @@ backend:
 
   - task: "Torrent control operations (pause/resume/delete)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented pause, resume, and delete endpoints for torrent management"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - All torrent control operations working correctly. Pause endpoint successfully pauses torrents, resume endpoint resumes downloads, delete endpoint removes torrents from session and database. Speed limit updates via PUT endpoint also functional."
 
   - task: "Bandwidth limiting controls"
     implemented: true
