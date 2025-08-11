@@ -158,7 +158,8 @@ class TorrentBackendTester:
             ws_url = f"{API_BASE}/ws".replace('https://', 'wss://').replace('http://', 'ws://')
             print(f"Connecting to WebSocket: {ws_url}")
             
-            async with websockets.connect(ws_url, timeout=10) as websocket:
+            # Use websockets.connect without timeout parameter for compatibility
+            async with websockets.connect(ws_url) as websocket:
                 print("✅ WebSocket connection established")
                 
                 # Send a test message
