@@ -152,15 +152,18 @@ backend:
 
   - task: "Bandwidth limiting controls"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented individual and global speed limit controls"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Bandwidth limiting controls working correctly. Global bandwidth limits endpoint (/api/settings/global-limits) successfully sets download and upload limits. Individual torrent speed limits applied during upload and can be updated via PUT endpoint."
 
   - task: "Download statistics and system stats"
     implemented: true
