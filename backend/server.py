@@ -270,7 +270,7 @@ def add_torrent_to_session(torrent_data: bytes, torrent_id: str, params: dict):
         # Set download parameters with better configuration
         add_torrent_params = {
             'ti': info,
-            'save_path': str(TORRENTS_DIR),
+            'save_path': str(DOWNLOAD_DIR),
             'flags': (
                 lt.torrent_flags.duplicate_is_error | 
                 lt.torrent_flags.auto_managed |
