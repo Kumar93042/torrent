@@ -167,15 +167,18 @@ backend:
 
   - task: "Download statistics and system stats"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented comprehensive statistics endpoint for torrents and system performance"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - System statistics endpoint (/api/stats) working correctly. Returns accurate counts for total downloads, active downloads, completed downloads, total downloaded bytes, and global download/upload rates. Statistics calculated properly from database and active torrent sessions."
 
 frontend:
   - task: "Torrent file upload interface with drag-and-drop"
