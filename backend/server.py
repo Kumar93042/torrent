@@ -219,10 +219,33 @@ async def monitor_torrents():
             logger.error(f"Error in monitor_torrents: {e}")
             await asyncio.sleep(5)
 
-# Start monitoring task
+# Function to restore torrents from database on startup
+async def restore_torrents_on_startup():
+    try:
+        incomplete_torrents = await db.torrents.find({
+            "status": {"$in": ["downloading", "paused", "queued"]}
+        }).to_list(1000)
+        
+        logger.info(f"Restoring {len(incomplete_torrents)} incomplete torrents")
+        
+        for torrent in incomplete_torrents:
+            # Try to find the torrent file (this would need to be saved during upload)
+            # For now, mark as error if we can't restore
+            await db.torrents.update_one(
+                {"id": torrent["id"]},
+                {"$set": {"status": "error", "error": "Cannot restore torrent file after restart"}}
+            )
+            
+        logger.info("Torrent restoration completed")
+        
+    except Exception as e:
+        logger.error(f"Error restoring torrents: {e}")
+
+# Start monitoring task and restore torrents
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(monitor_torrents())
+    await restore_torrents_on_startup()
 
 # WebSocket endpoint for real-time updates
 @api_router.websocket("/ws")
